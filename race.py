@@ -28,17 +28,21 @@ TODO:
 
 class race():
 
-    def __init__(self, lapFile, carNum, debug=False):
+    def __init__(self, lapFile, carNum=999999, debug=False):
         self.lapData = {}
         self.analyzedData = {}
 
+        print "carNum:" + str(carNum)
         self.stints = []
 
         self.lapFile = lapFile
-        self.carNum = carNum
+        self.carNum = str(carNum)
         self.debug = debug
 
-        self.__loadLapData()
+        if int(carNum) == 999999:
+            self.__load_new_format()
+        else:
+            self.__loadLapData()
 
     def getAnalyzedData(self):
         return self.analyzedData
@@ -181,6 +185,34 @@ class race():
 
     def __convertSecondsToTime(self, seconds):
         return str(datetime.timedelta(seconds=seconds))
+
+    '''
+    Lap,Lead Lap,Lap Time,Difference w/ fast lap,Difference w/ best lap,Speed
+1,1,02:47.0,0.000,47.159,47.437
+    '''
+    def __load_new_format(self):
+        carNum = self.carNum
+        print "__load_new_format"
+        with open(self.lapFile) as f:
+            for line in f:
+                recordLine = line.rstrip().split(',')
+
+                if carNum not in self.lapData:
+                    self.lapData[carNum] = []
+
+                record = {}
+                record['carClass'] = "dummy class"
+                record['teamName'] = "fuck if I know"
+                record['laps'] = recordLine[0]
+                record['lapTime'] = recordLine[2]
+                record['lapTimeInSeconds'] = self.__convertTimeToSeconds(
+                    recordLine[2])
+
+                #print record
+                self.lapData[carNum].append(record)
+
+
+
 
     def __loadLapData(self):
 
